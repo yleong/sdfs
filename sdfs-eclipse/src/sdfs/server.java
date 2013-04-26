@@ -24,7 +24,7 @@ public class server {
 		int port = 3000;
 		try {
 			System.out.println("Locating server socket factory for SSL...");
-			String ksName = "/Users/arvindersaini/Desktop/CS-6238/keystore.jks";
+			String ksName = "../CS-6238/keystore.jks";
 			char ksPass[] = "cs6238-ca".toCharArray();
 			char ctPass[] = "cs6238-ca".toCharArray();
 			KeyStore ks = KeyStore.getInstance("JKS");
