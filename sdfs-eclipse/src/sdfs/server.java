@@ -204,21 +204,21 @@ public class server {
 			// Always close files.
 			bufferedWriter.close();
 
-			//--------Encrypting key-------
-
-			String encryptedkey = EncryptKey();
-			//Assume default encoding.
-			FileWriter fileWriter_key = new FileWriter(file_name + ".key");
-
-			// Always wrap FileWriter in BufferedWriter.
-			bufferedWriter_key = new BufferedWriter(fileWriter_key);
-
-			// Note that write() does not automatically
-			// append a newline character.
-			bufferedWriter_key.write(encryptedkey);
-
-			// Always close files.
-			bufferedWriter_key.close();
+//			//--------Encrypting key-------
+//
+//			String encryptedkey = EncryptKey();
+//			//Assume default encoding.
+//			FileWriter fileWriter_key = new FileWriter(file_name + ".key");
+//
+//			// Always wrap FileWriter in BufferedWriter.
+//			bufferedWriter_key = new BufferedWriter(fileWriter_key);
+//
+//			// Note that write() does not automatically
+//			// append a newline character.
+//			bufferedWriter_key.write(encryptedkey);
+//
+//			// Always close files.
+//			bufferedWriter_key.close();
 
 
 		} catch (IOException e) {
@@ -266,7 +266,7 @@ public class server {
 	private String decrptText(String encrypted_text) {
 		byte[] decryptedText = null;
 		String decrypted_Text = null;
-		String decryption_key = decrptKey();
+//		String decryption_key = decrptKey();
 
 
 		// setup AES cipher in CBC mode with PKCS #5 padding
@@ -294,9 +294,9 @@ public class server {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		digest.update(decryption_key.getBytes());         //check if this is going to work (keystring.tobytes())
-		byte[] key = new byte[16];
-		System.arraycopy(digest.digest(), 0, key, 0, key.length);
+//		digest.update(decryption_key.getBytes());         //check if this is going to work (keystring.tobytes())
+//		byte[] key = new byte[16];
+//		System.arraycopy(digest.digest(), 0, key, 0, key.length);
 		SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 		// decrypt
