@@ -321,7 +321,7 @@ public class server {
 		}
 		//		digest.update(decryption_key.getBytes());         //check if this is going to work (keystring.tobytes())
 		//		byte[] key = new byte[16];
-		System.arraycopy(digest.digest(), 0, key, 0, key.length);
+//		System.arraycopy(digest.digest(), 0, key, 0, key.length);
 		SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 		// decrypt
@@ -536,10 +536,6 @@ public class server {
 		}
 
 		return cipher_key;
-
-	}
-
-	public void sendFile_client(){
 
 	}
 
