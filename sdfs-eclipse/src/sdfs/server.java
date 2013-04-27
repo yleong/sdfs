@@ -54,6 +54,7 @@ public class server {
 	private char ksPass[];
 	private char ctPass[];
 	private String file_name = null;
+	private Principal clientID;
 
 	//This is the method that tries to listen to the client 
 	//on the given port number.
@@ -114,8 +115,8 @@ public class server {
 			System.out.println("Starting handshake...");
 			socket.startHandshake();
 			SSLSession session = socket.getSession();
-			Principal serverID = session.getPeerPrincipal();
-			System.out.println("The principal of the peer is " + serverID.getName() + " and should read as client");
+			this.clientID = session.getPeerPrincipal();
+			System.out.println("The principal of the peer is " + clientID.getName() + " and should read as client");
 
 			BufferedReader r = new BufferedReader(
 					new InputStreamReader(socket.getInputStream()));
@@ -201,24 +202,12 @@ public class server {
 			}
 
 			//Encrypting the file content
-			String data = fileData.toString();
+			String data = this.clientID.getName() + fileData.toString();
 			byte [] EncryptedData = EncryptFileContent(data);
 			FileOutputStream foWrite = new FileOutputStream(file_name);
 			ObjectOutputStream oosWrite = new ObjectOutputStream(foWrite);
 			oosWrite.write(EncryptedData);
 			oosWrite.close();
-			//Assume default encoding.
-			//			FileWriter fileWriter = new FileWriter(file_name);
-			//
-			//			// Always wrap FileWriter in BufferedWriter.
-			//			bufferedWriter = new BufferedWriter(fileWriter);
-			//
-			//			// Note that write() does not automatically
-			//			// append a newline character.
-			//			bufferedWriter.write(EncryptedData);
-			//
-			//			// Always close files.
-			//			bufferedWriter.close();
 
 			//			//--------Encrypting key-------
 			//
@@ -256,6 +245,16 @@ public class server {
 
 			String decryptedText = decrptText(bytes_data);
 
+			//check if the client is the owner or posssess a valid
+			//delagation token for the owner
+			
+			if(checkPermission(decryptedText) == false){
+				System.out.println("Invalid get request, you do not own this file");
+				return;
+			}
+			
+			decryptedText = decryptedText.substring(this.clientID.getName().length());
+			
 //			File file = new File(file_name);
 			long fileSize = decryptedText.length();
 			ByteBuffer file_size = ByteBuffer.allocate(8);
@@ -274,6 +273,18 @@ public class server {
 
 		}
 
+	}
+
+	//check for permissions to get this file
+	private boolean checkPermission(String decryptedText) {
+		if(decryptedText.indexOf(this.clientID.getName()) == 0){
+			return true;
+		} 
+		if(false){
+			return true;
+			//check for delegation
+		}
+		return false;
 	}
 
 	private String decrptText(byte[] encrypted_text) {
