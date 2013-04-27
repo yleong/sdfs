@@ -14,12 +14,14 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Properties;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -200,8 +202,13 @@ public class client {
 			for (int i = 0; i < suites.length; i++) {
 				System.out.println(suites[i]);
 			}
-			Socket.setEnabledCipherSuites(suites);
+			
+			//set the cipher suite to only dhe rsa
+			String[] dhe_rsa_aes_256 = new String[1];
+			dhe_rsa_aes_256[0] = new String("TLS_DHE_RSA_WITH_AES_256_CBC_SHA");
+			Socket.setEnabledCipherSuites(dhe_rsa_aes_256);
 
+			
 			System.out.println("Support protocols are:");
 			String[] protocols = Socket.getSupportedProtocols();
 			for (int i = 0; i < protocols.length; i++) {
@@ -213,6 +220,9 @@ public class client {
 
 			System.out.println("Starting handshake...");
 			Socket.startHandshake();
+			SSLSession session = Socket.getSession();
+			Principal serverID = session.getPeerPrincipal();
+			System.out.println("The principal of the peer is " + serverID.getName() + " and should read as server");
 			//		      BufferedWriter w = new BufferedWriter(
 			//		              new OutputStreamWriter(Socket.getOutputStream()));
 			//		      w.write("hello");
