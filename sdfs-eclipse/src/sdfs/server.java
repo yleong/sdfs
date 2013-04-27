@@ -19,6 +19,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
@@ -36,6 +37,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import sun.misc.BASE64Encoder;
@@ -92,7 +94,9 @@ public class server {
 			for (int i = 0; i < suites.length; i++) {
 				System.out.println(suites[i]);
 			}
-			serverSocket.setEnabledCipherSuites(suites);
+			String[] dhe_rsa_aes_256 = new String[1];
+			dhe_rsa_aes_256[0] = new String("TLS_DHE_RSA_WITH_AES_256_CBC_SHA");
+			serverSocket.setEnabledCipherSuites(dhe_rsa_aes_256);
 
 			System.out.println("Support protocols are:");
 			String[] protocols = serverSocket.getSupportedProtocols();
@@ -105,6 +109,10 @@ public class server {
 
 			System.out.println("Starting handshake...");
 			socket.startHandshake();
+			SSLSession session = socket.getSession();
+			Principal serverID = session.getPeerPrincipal();
+			System.out.println("The principal of the peer is " + serverID.getName() + " and should read as client");
+
 			BufferedReader r = new BufferedReader(
 					new InputStreamReader(socket.getInputStream()));
 
