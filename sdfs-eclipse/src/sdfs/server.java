@@ -99,10 +99,15 @@ public class server {
 			for (int i = 0; i < suites.length; i++) {
 				System.out.println(suites[i]);
 			}
+			
+			//set the cipher suite to only dhe rsa
 			String[] dhe_rsa_aes_256 = new String[1];
 			dhe_rsa_aes_256[0] = new String("TLS_DHE_RSA_WITH_AES_256_CBC_SHA");
 			serverSocket.setEnabledCipherSuites(dhe_rsa_aes_256);
 
+			//require client authentication
+			serverSocket.setNeedClientAuth(true);
+				
 			System.out.println("Support protocols are:");
 			String[] protocols = serverSocket.getSupportedProtocols();
 			for (int i = 0; i < protocols.length; i++) {
