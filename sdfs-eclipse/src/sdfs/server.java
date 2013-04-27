@@ -5,9 +5,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -127,7 +132,7 @@ public class server {
 					file_name = get_fileName(r);
 					String local_FileName = "../ServerFile/" + file_name;
 
-					handle_get(local_FileName ,r);
+					handle_get(local_FileName);
 				}
 			}
 			System.out.println("Just connected to " + socket.getRemoteSocketAddress());
@@ -190,35 +195,32 @@ public class server {
 
 			//Encrypting the file content
 			String data = fileData.toString();
-			String EncryptedData = EncryptFileContent(data);
+			byte [] EncryptedData = EncryptFileContent(data);
+			FileOutputStream foWrite = new FileOutputStream(file_name);
+			ObjectOutputStream oosWrite = new ObjectOutputStream(foWrite);
+			oosWrite.write(EncryptedData);
+			oosWrite.close();
 			//Assume default encoding.
-			FileWriter fileWriter = new FileWriter(file_name);
-
-			// Always wrap FileWriter in BufferedWriter.
-			bufferedWriter = new BufferedWriter(fileWriter);
-
-			// Note that write() does not automatically
-			// append a newline character.
-			bufferedWriter.write(EncryptedData);
-
-			// Always close files.
-			bufferedWriter.close();
-
-//			//--------Encrypting key-------
-//
-//			String encryptedkey = EncryptKey();
-//			//Assume default encoding.
-//			FileWriter fileWriter_key = new FileWriter(file_name + ".key");
+//			FileWriter fileWriter = new FileWriter(file_name);
 //
 //			// Always wrap FileWriter in BufferedWriter.
-//			bufferedWriter_key = new BufferedWriter(fileWriter_key);
+//			bufferedWriter = new BufferedWriter(fileWriter);
 //
 //			// Note that write() does not automatically
 //			// append a newline character.
-//			bufferedWriter_key.write(encryptedkey);
+//			bufferedWriter.write(EncryptedData);
 //
 //			// Always close files.
-//			bufferedWriter_key.close();
+//			bufferedWriter.close();
+
+			//			//--------Encrypting key-------
+			//
+			//			String encryptedkey = EncryptKey();
+			//			//Assume default encoding.
+			FileOutputStream fo = new FileOutputStream(file_name + ".key");
+			ObjectOutputStream oos = new ObjectOutputStream(fo);
+			oos.write(key);
+			oos.close();
 
 
 		} catch (IOException e) {
@@ -230,24 +232,27 @@ public class server {
 	//This method checks if the file is with the server
 	//If not then it returns an error otherwise it will return 
 	//the file to the client
-	public void handle_get(String file_name, BufferedReader r){
+	public void handle_get(String file_name){
 		try{
 			BufferedWriter w;
 			w = new BufferedWriter(
 					new OutputStreamWriter(socket.getOutputStream()));
 			File file = new File(file_name);
 			FileInputStream fis = new FileInputStream(file);
-			long fileSize = fis.available();
+			long fileSize = file.length();
 			ByteBuffer file_size = ByteBuffer.allocate(8);
-			file_size.putInt((int)fileSize);
+			file_size.putLong(fileSize);
 			char[] char_file = new String(file_size.array()).toCharArray();
 			w.write(char_file,0,8);
 
-			byte[] b = new byte[fis.available()];
-			fis.read(b);
-			String encrypted_text = new String(b);
+			byte[] bytes_data = new byte[(int) fileSize];
+			ObjectInputStream ois_read = new ObjectInputStream(fis);
+			ois_read.read(bytes_data, 0, bytes_data.length);
+			ois_read.close();
+//			fis.read(bytes_data);
+//			String encrypted_text = new String(b);
 
-			String decryptedText = decrptText(encrypted_text);
+			String decryptedText = decrptText(bytes_data);
 
 			w.write(decryptedText);
 			w.flush();
@@ -263,10 +268,29 @@ public class server {
 
 	}
 
-	private String decrptText(String encrypted_text) {
+	private String decrptText(byte[] encrypted_text) {
 		byte[] decryptedText = null;
 		String decrypted_Text = null;
-//		String decryption_key = decrptKey();
+		key = new byte[16];
+		//		String decryption_key = decrptKey();
+
+		//for checking 
+		
+		try {
+			FileInputStream fi = new FileInputStream("../ServerFile/" + file_name + ".key");
+			ObjectInputStream ois = new ObjectInputStream(fi);
+			ois.read(key, 0 , 16);
+			ois.close();
+			
+		} catch (FileNotFoundException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 
 
 		// setup AES cipher in CBC mode with PKCS #5 padding
@@ -282,7 +306,7 @@ public class server {
 		}
 		iv = new byte[cipher.getBlockSize()];
 
-//		new SecureRandom().nextBytes(iv);
+		//		new SecureRandom().nextBytes(iv);
 
 		IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
@@ -294,9 +318,9 @@ public class server {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-//		digest.update(decryption_key.getBytes());         //check if this is going to work (keystring.tobytes())
-//		byte[] key = new byte[16];
-//		System.arraycopy(digest.digest(), 0, key, 0, key.length);
+		//		digest.update(decryption_key.getBytes());         //check if this is going to work (keystring.tobytes())
+		//		byte[] key = new byte[16];
+		System.arraycopy(digest.digest(), 0, key, 0, key.length);
 		SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 		// decrypt
@@ -311,8 +335,7 @@ public class server {
 		}
 		//	        byte[] decrypted = null;
 		try {
-			byte[] theByteArray = encrypted_text.getBytes();
-			decryptedText = cipher.doFinal(theByteArray);
+			decryptedText = cipher.doFinal(encrypted_text);
 		} catch (IllegalBlockSizeException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -332,8 +355,8 @@ public class server {
 		return decrypted_Text;
 
 	}
-	
-	
+
+
 	private String decrptKey() {
 		// TODO Auto-generated method stub
 		byte[] cipherText = null;
@@ -391,10 +414,10 @@ public class server {
 
 	//This method does the encryption needed for storing the
 	//file with the server.
-	public String EncryptFileContent(String fileData){
+	public byte[] EncryptFileContent(String fileData){
 		byte[] encryptedDataBytes = null;
 		final String keyString = fileData;
-		String encryptedData = null;
+//		String encryptedData = null;
 
 		// setup AES cipher in CBC mode with PKCS #5 padding
 		Cipher cipher = null;
@@ -412,7 +435,7 @@ public class server {
 		// randomly generated for each input that's encrypted
 		iv = new byte[cipher.getBlockSize()];
 
-//		new SecureRandom().nextBytes(iv);
+		//		new SecureRandom().nextBytes(iv);
 
 		IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
@@ -455,15 +478,15 @@ public class server {
 			e.printStackTrace();
 		}
 
-		try {
-			encryptedData = new String(encryptedDataBytes, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			encryptedData = new String(encryptedDataBytes, "UTF-8");
+//		} catch (UnsupportedEncodingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 
-		return encryptedData;
+		return encryptedDataBytes;
 	}
 
 	public String EncryptKey(){
