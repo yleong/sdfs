@@ -34,7 +34,7 @@ public class client {
 	//based on the user provided filename
 	public void GetFile(String UID){
 		fileName = UID;
-//		fileName = "../../ClientFile/" + fileName;
+		String localfileName = "../ClientFile/" + fileName;
 		BufferedWriter w;
 		try {
 			w = new BufferedWriter(
@@ -52,8 +52,8 @@ public class client {
 
 			BufferedReader r = new BufferedReader(
 					new InputStreamReader(Socket.getInputStream()));
-			create_File(fileName, r);
-			//			w.close();
+			create_File(localfileName, r);
+			w.close();
 
 		}catch(FileNotFoundException fe){
 			System.out.println("File not found ");
@@ -71,19 +71,25 @@ public class client {
 			// creates buffer
 			char[] cbuf = new char[8];
 			br.read(cbuf, 0, 8);
+			for(int i=0; i<8 ;i++){
+				System.out.println((int)cbuf[i]);
+			}
+			
 
 			for (char c:cbuf)
 			{
 				file_size.put((byte) c);
 			}
 			file_size.rewind();
-			int int_size = file_size.getInt();
+			long int_size = file_size.getLong();
 
 			StringBuffer fileData = new StringBuffer();
-			for(int i=0; i< int_size ; i++){
+			System.out.println(int_size);
+			for(long i=0; i< int_size ; i++){
 				fileData.append((char) br.read());
 			}
-
+			System.out.println(fileData.toString());
+			
 			//Assume default encoding.
 			FileWriter fileWriter = new FileWriter(file_name);
 
@@ -111,7 +117,7 @@ public class client {
 	public void PutFile(String UID){
 
 		fileName = UID;					//need to see how the filename and Id are related
-		String localFileName = "../../ClientFile/" + fileName;
+		String localFileName = "../ClientFile/" + fileName;
 		System.out.println(localFileName);
 		BufferedWriter w;
 		try {
@@ -165,11 +171,11 @@ public class client {
 			// Use the public key from the AIDAP server as the trust store for this client.
 			//   (note: created this keystore using InstallCerts.java from sun.com)
 			Properties systemProps = System.getProperties();
-			systemProps.put( "javax.net.ssl.trustStore", "../../CS-6238/myTrustStore");
+			systemProps.put( "javax.net.ssl.trustStore", "../CS-6238/myTrustStore");
 			System.setProperties(systemProps);
 
 			System.out.println("Locating server socket factory for SSL...");
-			String ksName = "../../CS-6238/keystore.jks";
+			String ksName = "../CS-6238/keystore.jks";
 			char ksPass[] = "cs6238-ca".toCharArray();
 			char ctPass[] = "cs6238-ca".toCharArray();
 			KeyStore ks = KeyStore.getInstance("JKS");

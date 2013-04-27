@@ -67,11 +67,11 @@ public class server {
 		int port = 3000;
 		try {
 			Properties systemProps = System.getProperties();
-			systemProps.put( "javax.net.ssl.trustStore", "../CS-6238/myTrustStore");
+			systemProps.put( "javax.net.ssl.trustStore", "../../CS-6238/myTrustStore");
 			System.setProperties(systemProps);
 
 			System.out.println("Locating server socket factory for SSL...");
-			ksName = "../CS-6238/keystoreServer.jks";
+			ksName = "../../CS-6238/keystoreServer.jks";
 			ksPass = "cs6238-ca".toCharArray();
 			ctPass = "cs6238-ca".toCharArray();
 			KeyStore ks = KeyStore.getInstance("JKS");
@@ -137,13 +137,13 @@ public class server {
 				if(b_choice == 'p'){
 					System.out.println("got inside th loop......put..");
 					file_name = get_fileName(r);
-					String local_FileName = "../ServerFile/" + file_name;
+					String local_FileName = "../../ServerFile/" + file_name;
 					create_File(local_FileName, r);
 				}
 				else if(b_choice == 'g'){
 					System.out.println("got inside th loop.....get");
 					file_name = get_fileName(r);
-					String local_FileName = "../ServerFile/" + file_name;
+					String local_FileName = "../../ServerFile/" + file_name;
 
 					handle_get(local_FileName);
 				}
@@ -214,25 +214,25 @@ public class server {
 			oosWrite.write(EncryptedData);
 			oosWrite.close();
 			//Assume default encoding.
-//			FileWriter fileWriter = new FileWriter(file_name);
-//
-//			// Always wrap FileWriter in BufferedWriter.
-//			bufferedWriter = new BufferedWriter(fileWriter);
-//
-//			// Note that write() does not automatically
-//			// append a newline character.
-//			bufferedWriter.write(EncryptedData);
-//
-//			// Always close files.
-//			bufferedWriter.close();
+			//			FileWriter fileWriter = new FileWriter(file_name);
+			//
+			//			// Always wrap FileWriter in BufferedWriter.
+			//			bufferedWriter = new BufferedWriter(fileWriter);
+			//
+			//			// Note that write() does not automatically
+			//			// append a newline character.
+			//			bufferedWriter.write(EncryptedData);
+			//
+			//			// Always close files.
+			//			bufferedWriter.close();
 
 			//			//--------Encrypting key-------
 			//
-			//			String encryptedkey = EncryptKey();
+			byte[] encryptedkey = EncryptKey();
 			//			//Assume default encoding.
 			FileOutputStream fo = new FileOutputStream(file_name + ".key");
 			ObjectOutputStream oos = new ObjectOutputStream(fo);
-			oos.write(key);
+			oos.write(encryptedkey);
 			oos.close();
 
 
@@ -250,12 +250,6 @@ public class server {
 			BufferedWriter w;
 			w = new BufferedWriter(
 					new OutputStreamWriter(socket.getOutputStream()));
-			File file = new File(file_name);
-			long fileSize = file.length();
-			ByteBuffer file_size = ByteBuffer.allocate(8);
-			file_size.putLong(fileSize);
-			char[] char_file = new String(file_size.array()).toCharArray();
-			w.write(char_file,0,8);
 
 			FileInputStream fis = new FileInputStream(file_name);
 			ObjectInputStream ois_read = new ObjectInputStream(fis);
@@ -263,11 +257,17 @@ public class server {
 			int numRead;
 			numRead = ois_read.read(bytes_data, 0, bytes_data.length);
 			ois_read.close();
-//			fis.read(bytes_data);
-//			String encrypted_text = new String(b);
+			//			fis.read(bytes_data);
+			//			String encrypted_text = new String(b);
 
 			String decryptedText = decrptText(bytes_data);
 
+//			File file = new File(file_name);
+			long fileSize = decryptedText.length();
+			ByteBuffer file_size = ByteBuffer.allocate(8);
+			file_size.putLong(fileSize);
+			char[] char_file = new String(file_size.array()).toCharArray();
+			w.write(char_file,0,8);
 			w.write(decryptedText);
 			w.flush();
 		} 
@@ -285,27 +285,8 @@ public class server {
 	private String decrptText(byte[] encrypted_text) {
 		byte[] decryptedText = null;
 		String decrypted_Text = null;
-		key = new byte[16];
-		//		String decryption_key = decrptKey();
-
-		//for checking 
-		
-		try {
-			FileInputStream fi = new FileInputStream("../ServerFile/" + file_name + ".key");
-			ObjectInputStream ois = new ObjectInputStream(fi);
-			ois.read(key, 0 , 16);
-			ois.close();
-			
-		} catch (FileNotFoundException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-
+		//		key = new byte[16];
+		byte[] decryption_key = decrptKey();
 
 		// setup AES cipher in CBC mode with PKCS #5 padding
 		Cipher cipher = null;
@@ -334,8 +315,8 @@ public class server {
 		}
 		//		digest.update(decryption_key.getBytes());         //check if this is going to work (keystring.tobytes())
 		//		byte[] key = new byte[16];
-//		System.arraycopy(digest.digest(), 0, key, 0, key.length);
-		SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+		//		System.arraycopy(digest.digest(), 0, key, 0, key.length);
+		SecretKeySpec keySpec = new SecretKeySpec(decryption_key, "AES");
 
 		// decrypt
 		try {
@@ -371,10 +352,10 @@ public class server {
 	}
 
 
-	private String decrptKey() {
+	private byte[] decrptKey() {
 		// TODO Auto-generated method stub
 		byte[] cipherText = null;
-		String decrypt_key = null;
+		byte[] decrypt_key = null;
 		try{
 			final String alias = "server";
 			KeyStore ks;
@@ -388,16 +369,28 @@ public class server {
 			System.out.println(b64);
 			System.out.println("-----END PRIVATE KEY-----");
 
-			String fileContent = new Scanner( new File("../ServerFile/" + file_name + ".key"), "UTF-8" ).useDelimiter("\\A").next();
+			try {
+				FileInputStream fi = new FileInputStream("../../ServerFile/" + file_name + ".key");
+				ObjectInputStream ois = new ObjectInputStream(fi);
+				cipherText = new byte[ois.available()];
+				ois.read(cipherText, 0 , cipherText.length);
+				ois.close();
 
+			} catch (FileNotFoundException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			try {
 				// get an RSA cipher object and print the provider
 				final Cipher cipher = Cipher.getInstance("RSA");
 				// encrypt the plain text using the public key
 				SecureRandom random = new SecureRandom();
 				cipher.init(Cipher.DECRYPT_MODE, serverkey, random);
-				cipherText = cipher.doFinal(fileContent.getBytes());
-				decrypt_key = new String(cipherText, "UTF-8");
+				decrypt_key = cipher.doFinal(cipherText);
+//				decrypt_key = new String(cipherText, "UTF-8");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -431,7 +424,7 @@ public class server {
 	public byte[] EncryptFileContent(String fileData){
 		byte[] encryptedDataBytes = null;
 		final String keyString = fileData;
-//		String encryptedData = null;
+		//		String encryptedData = null;
 
 		// setup AES cipher in CBC mode with PKCS #5 padding
 		Cipher cipher = null;
@@ -492,18 +485,18 @@ public class server {
 			e.printStackTrace();
 		}
 
-//		try {
-//			encryptedData = new String(encryptedDataBytes, "UTF-8");
-//		} catch (UnsupportedEncodingException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		//		try {
+		//			encryptedData = new String(encryptedDataBytes, "UTF-8");
+		//		} catch (UnsupportedEncodingException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//		}
 
 
 		return encryptedDataBytes;
 	}
 
-	public String EncryptKey(){
+	public byte[] EncryptKey(){
 		byte[] cipherText = null;
 		String cipher_key = null;
 		try{
@@ -515,9 +508,9 @@ public class server {
 			serverkey = ks.getCertificate(alias);
 
 			String b64 = new BASE64Encoder().encode(serverkey.getEncoded());
-			System.out.println("-----BEGIN PRIVATE KEY-----");
+			System.out.println("-----BEGIN CERTIFICATE-----");
 			System.out.println(b64);
-			System.out.println("-----END PRIVATE KEY-----");
+			System.out.println("-----END CERTIFICATE-----");
 
 			try {
 				// get an RSA cipher object and print the provider
@@ -526,7 +519,7 @@ public class server {
 				SecureRandom random = new SecureRandom();
 				cipher.init(Cipher.ENCRYPT_MODE, serverkey, random);
 				cipherText = cipher.doFinal(key);
-				cipher_key = new String(cipherText, "UTF-8");
+				//				cipher_key = new String(cipherText, "UTF-8");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -548,7 +541,7 @@ public class server {
 			e.printStackTrace();
 		}
 
-		return cipher_key;
+		return cipherText;
 
 	}
 
