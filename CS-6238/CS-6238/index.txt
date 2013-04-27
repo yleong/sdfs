@@ -1,2 +1,0 @@
-V	140425171017Z		234123	unknown	/C=AU/ST=georgia/O=Internet Widgits Pty Ltd/OU=gtech/CN=client1
-V	140425172559Z		234124	unknown	/C=AU/ST=georgia/O=Internet Widgits Pty Ltd/OU=gtech/CN=client2
