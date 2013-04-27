@@ -251,16 +251,17 @@ public class server {
 			w = new BufferedWriter(
 					new OutputStreamWriter(socket.getOutputStream()));
 			File file = new File(file_name);
-			FileInputStream fis = new FileInputStream(file);
 			long fileSize = file.length();
 			ByteBuffer file_size = ByteBuffer.allocate(8);
 			file_size.putLong(fileSize);
 			char[] char_file = new String(file_size.array()).toCharArray();
 			w.write(char_file,0,8);
 
-			byte[] bytes_data = new byte[(int) fileSize];
+			FileInputStream fis = new FileInputStream(file_name);
 			ObjectInputStream ois_read = new ObjectInputStream(fis);
-			ois_read.read(bytes_data, 0, bytes_data.length);
+			byte[] bytes_data = new byte[ois_read.available()];
+			int numRead;
+			numRead = ois_read.read(bytes_data, 0, bytes_data.length);
 			ois_read.close();
 //			fis.read(bytes_data);
 //			String encrypted_text = new String(b);
@@ -333,7 +334,7 @@ public class server {
 		}
 		//		digest.update(decryption_key.getBytes());         //check if this is going to work (keystring.tobytes())
 		//		byte[] key = new byte[16];
-		System.arraycopy(digest.digest(), 0, key, 0, key.length);
+//		System.arraycopy(digest.digest(), 0, key, 0, key.length);
 		SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 		// decrypt
@@ -548,10 +549,6 @@ public class server {
 		}
 
 		return cipher_key;
-
-	}
-
-	public void sendFile_client(){
 
 	}
 
