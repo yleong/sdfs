@@ -32,6 +32,20 @@ public class Main {
 			else if(input2.equals("get")){
 				obj_client.GetFile(UID);
 			}
+			else if(input2.equals("del")){
+				Scanner readDelegateInfo = new Scanner(System.in);	//asking user to enter the mode. put/get
+				System.out.println("Please enter file the following. \n File name \nRecepient name \nRights \nNumber of days \nPropagatable.");
+				System.out.println("File name");
+				String FileName = readDelegateInfo.next();
+				System.out.println("Recepient");
+				String Recepient = readDelegateInfo.next();
+				System.out.println("Rights");
+				String Rights = readDelegateInfo.next();
+				System.out.println("Duration");
+				String Duration = readDelegateInfo.next();
+				System.out.println("Is it propagatable?");
+				String Propagateable = readDelegateInfo.next();
+			}
 			else
 				System.out.println("Invalid input");
 		}

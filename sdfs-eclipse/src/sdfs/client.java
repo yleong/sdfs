@@ -187,14 +187,31 @@ public class client {
 		byte[] serialTokenLength = integerToByteArray(serialToken.length);
 		byte[] signature = readFile("default.sig");
 		byte[] signatureLength = integerToByteArray(signature.length);
-		
+		BufferedWriter w;
+		try {
+			w = new BufferedWriter(
+					new OutputStreamWriter(Socket.getOutputStream()));
+			char[] char_Token = new String(serialToken, "UTF-8").toCharArray();
+			char[] char_TokenLength = new String(serialTokenLength, "UTF-8").toCharArray();
+			char[] char_TokenSign = new String(signature, "UTF-8").toCharArray();
+			char[] char_TokenSignLegth = new String(signatureLength, "UTF-8").toCharArray();
+			w.write(char_Token, 0, serialToken.length);
+			w.write(char_TokenLength, 0, serialToken.length);
+			w.write(char_TokenSign, 0, serialToken.length);
+			w.write(char_TokenSignLegth, 0, serialToken.length);
+			
+			w.flush();
+			w.close();
+		}
+		catch(Exception ex){
+			
+		}
 		//send all 4 in that order to the server 
 	}
 	
 	public byte[] integerToByteArray(int input){
 		//given an integer, return the 4-byte representation of the integer
-		
-		return null;
+		return ByteBuffer.allocate(4).putInt(input).array();
 	}
 	
 	//given a token object, return a byte[] representation of the token
