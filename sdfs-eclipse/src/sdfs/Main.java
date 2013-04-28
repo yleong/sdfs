@@ -17,7 +17,10 @@ public class Main {
 		}
 		else if(input.equals("client")){
 			client obj_client = new client();
-
+			System.out.println("Please enter the path to the keystore...");
+			String path = reader.next();
+			obj_client.ksName = path;
+			
 			obj_client.Start_FS_session();			//starting the session with the server
 			
 			while(1!=2){
