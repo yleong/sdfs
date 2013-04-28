@@ -6,7 +6,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		Scanner reader = new Scanner(System.in);
-		System.out.println("Enter input");
+		System.out.println("Enter input (Server/Client): ");
 		//get user input for a
 		String input = reader.next();
 

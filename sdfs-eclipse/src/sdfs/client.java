@@ -357,17 +357,17 @@ public class client {
 			//				SSLSocket Socket = (SSLSocket) ssf.createSocket("127.0.0.1",port);
 			Socket = (SSLSocket) ssf.createSocket("127.0.0.1",port);
 			//		    ---------------------
-			System.out.println("Locating server socket factory for SSL...");
+//			System.out.println("Locating server socket factory for SSL...");
 			//		      SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
 
-			System.out.println("Creating a server socket on port " + port);
+//			System.out.println("Creating a server socket on port " + port);
 			//		      SSLSocket Socket = (SSLSocket) factory.createSocket("143.215.116.52",port);
 
-			String[] suites = Socket.getSupportedCipherSuites();
-			System.out.println("Support cipher suites are:");
-			for (int i = 0; i < suites.length; i++) {
-				System.out.println(suites[i]);
-			}
+//			String[] suites = Socket.getSupportedCipherSuites();
+//			System.out.println("Support cipher suites are:");
+//			for (int i = 0; i < suites.length; i++) {
+//				System.out.println(suites[i]);
+//			}
 			
 			//set the cipher suite to only dhe rsa
 			String[] dhe_rsa_aes_256 = new String[1];
@@ -375,11 +375,11 @@ public class client {
 			Socket.setEnabledCipherSuites(dhe_rsa_aes_256);
 
 			
-			System.out.println("Support protocols are:");
-			String[] protocols = Socket.getSupportedProtocols();
-			for (int i = 0; i < protocols.length; i++) {
-				System.out.println(protocols[i]);
-			}
+//			System.out.println("Support protocols are:");
+//			String[] protocols = Socket.getSupportedProtocols();
+//			for (int i = 0; i < protocols.length; i++) {
+//				System.out.println(protocols[i]);
+//			}
 
 //			System.out.println("Waiting for client...");
 			//		      SSLSocket socket = (SSLSocket) Socket.sta

@@ -96,10 +96,10 @@ public class server {
 			//			SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(port);
 
 			String[] suites = serverSocket.getSupportedCipherSuites();
-			System.out.println("Support cipher suites are:");
-			for (int i = 0; i < suites.length; i++) {
-				System.out.println(suites[i]);
-			}
+//			System.out.println("Support cipher suites are:");
+//			for (int i = 0; i < suites.length; i++) {
+//				System.out.println(suites[i]);
+//			}
 
 			//set the cipher suite to only dhe rsa
 			String[] dhe_rsa_aes_256 = new String[1];
@@ -109,11 +109,11 @@ public class server {
 			//require client authentication
 			serverSocket.setNeedClientAuth(true);
 
-			System.out.println("Support protocols are:");
-			String[] protocols = serverSocket.getSupportedProtocols();
-			for (int i = 0; i < protocols.length; i++) {
-				System.out.println(protocols[i]);
-			}
+//			System.out.println("Support protocols are:");
+//			String[] protocols = serverSocket.getSupportedProtocols();
+//			for (int i = 0; i < protocols.length; i++) {
+//				System.out.println(protocols[i]);
+//			}
 
 			System.out.println("Waiting for client...");
 			socket = (SSLSocket) serverSocket.accept();
