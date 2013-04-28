@@ -2,34 +2,44 @@ package sdfs;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
+import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Properties;
 
+import javax.crypto.Cipher;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import sun.misc.BASE64Encoder;
+
 public class client {
 	private SSLSocket Socket;
 	private String fileName;
 	private BufferedWriter bufferedWriter = null;
-	
+	private KeyStore ks;
 	//This method is requests a file from the server
 	//based on the user provided filename
 	public void GetFile(String UID){
@@ -192,23 +202,103 @@ public class client {
 		// get filename, recipientname, rights, numdays, propagate from the client
 		// store them inside a new DelegationToken(...)
 		byte[] output =null;
+		ByteArrayOutputStream bo = new ByteArrayOutputStream(2048);
+		try {
+			ObjectOutputStream o = new ObjectOutputStream(bo);
+			
+			o.writeObject(token);
+			
+			output = bo.toByteArray();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		return output;
 	}
 	
 	//given a token in byte[] format, sign it with the client's key
 	public byte[] signDelegationToken(byte[] token){
-		byte[] signedToken =null;
+		byte[] signature =null;
 		
-		return signedToken;
+		try{
+          
+			Key signingKey;
+			signingKey = ks.getKey("client", "cs6238-ca".toCharArray());
+			
+			String b64 = new BASE64Encoder().encode(signingKey.getEncoded());
+			System.out.println("-----BEGIN PRIVATE KEY-----");
+			System.out.println(b64);
+			System.out.println("-----END PRIVATE KEY-----");
+
+			//hash first.
+			MessageDigest digest = null;
+			try {
+				digest = MessageDigest.getInstance("SHA-256");
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			digest.update(token);
+			byte[] hashValue = digest.digest();
+			
+			//now, sign by decrypting.
+			try {
+				
+				// get an RSA cipher object and print the provider
+				final Cipher cipher = Cipher.getInstance("RSA");
+				// sign using the private key
+				SecureRandom random = new SecureRandom();
+				cipher.init(Cipher.DECRYPT_MODE, signingKey, random);
+				signature = cipher.doFinal(hashValue);
+//				decrypt_key = new String(cipherText, "UTF-8");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnrecoverableKeyException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return signature;
 	}
 
 	public void writeFile(byte[] file, String fileName){
-	
+		try {
+			FileOutputStream foWrite = new FileOutputStream(fileName);
+			ObjectOutputStream oosWrite;
+		
+			oosWrite = new ObjectOutputStream(foWrite);
+			oosWrite.write(file);
+			oosWrite.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public byte[] readFile(String fileName){
-		return null;
+		byte[] bytes_data = null;
+		try {
+			FileInputStream fis = new FileInputStream(fileName);
+			ObjectInputStream ois_read = new ObjectInputStream(fis);
+			bytes_data = new byte[ois_read.available()];
+			ois_read.read(bytes_data, 0, bytes_data.length);
+			ois_read.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return bytes_data;
 	}
 	
 	
@@ -226,7 +316,7 @@ public class client {
 			String ksName = "../CS-6238/keystore.jks";
 			char ksPass[] = "cs6238-ca".toCharArray();
 			char ctPass[] = "cs6238-ca".toCharArray();
-			KeyStore ks = KeyStore.getInstance("JKS");
+			ks = KeyStore.getInstance("JKS");
 			ks.load(new FileInputStream(ksName), ksPass);
 
 			KeyManagerFactory kmf = 

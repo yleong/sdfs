@@ -1,5 +1,3 @@
-import java.util.Date;
-
 package sdfs;
 
 public class DelegationToken implements java.io.Serializable{
