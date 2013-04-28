@@ -12,7 +12,8 @@ public class DelegationToken implements java.io.Serializable{
 	private boolean propagate;
 
 	DelegationToken(){} //empty constructor
-	DelegationToken(String recipientName, String rights, int numdays, boolean propagate){
+	DelegationToken(String fileName, String recipientName, String rights, int numdays, boolean propagate){
+		this.fileName = fileName;
 	    this.recipientName = recipientName;
 	    this.rights = rights;
 	    this.numdays = numdays;

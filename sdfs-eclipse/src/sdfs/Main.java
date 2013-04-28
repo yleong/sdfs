@@ -34,7 +34,7 @@ public class Main {
 			}
 			else if(input2.equals("del")){
 				Scanner readDelegateInfo = new Scanner(System.in);	//asking user to enter the mode. put/get
-				System.out.println("Please enter file the following. \n File name \nRecepient name \nRights \nNumber of days \nPropagatable.");
+				System.out.println("Please enter file the following.");
 				System.out.println("File name");
 				String FileName = readDelegateInfo.next();
 				System.out.println("Recepient");
@@ -45,6 +45,9 @@ public class Main {
 				String Duration = readDelegateInfo.next();
 				System.out.println("Is it propagatable?");
 				String Propagateable = readDelegateInfo.next();
+				
+				DelegationToken token = new DelegationToken(FileName, Recepient, Rights, Integer.parseInt(Duration), Boolean.parseBoolean(Propagateable));
+				obj_client.create_delegation_files(token);
 			}
 			else
 				System.out.println("Invalid input");
