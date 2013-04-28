@@ -21,7 +21,11 @@ import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.SecureRandom;
+import java.security.Security;
+import java.security.Signature;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Properties;
@@ -241,9 +245,8 @@ public class client {
 		
 		try{
           
-			Key signingKey;
-			signingKey = ks.getKey("client", "cs6238-ca".toCharArray());
-			
+			PrivateKey signingKey;
+			signingKey = (PrivateKey) ks.getKey("client", "cs6238-ca".toCharArray());
 			String b64 = new BASE64Encoder().encode(signingKey.getEncoded());
 			System.out.println("-----BEGIN PRIVATE KEY-----");
 			System.out.println(b64);
@@ -261,14 +264,20 @@ public class client {
 			byte[] hashValue = digest.digest();
 			
 			//now, sign by decrypting.
+			Provider[] p = Security.getProviders();
+			for(int i = 0; i < p.length; i++){
+				System.out.println(p[i].getName());
+				
+			}
 			try {
 				
 				// get an RSA cipher object and print the provider
-				final Cipher cipher = Cipher.getInstance("RSA");
+				final Signature signer = Signature.getInstance("SHA1withRSA");
 				// sign using the private key
 				SecureRandom random = new SecureRandom();
-				cipher.init(Cipher.DECRYPT_MODE, signingKey, random);
-				signature = cipher.doFinal(hashValue);
+				signer.initSign(signingKey, random);
+				signer.update(token);
+				signature = signer.sign();
 //				decrypt_key = new String(cipherText, "UTF-8");
 			} catch (Exception e) {
 				e.printStackTrace();
