@@ -39,6 +39,8 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
+import com.sun.tools.javadoc.Messager.ExitJavadoc;
+
 import sun.misc.BASE64Encoder;
 
 
@@ -94,7 +96,7 @@ public class server {
 			for (int i = 0; i < suites.length; i++) {
 				System.out.println(suites[i]);
 			}
-			
+
 			//set the cipher suite to only dhe rsa
 			String[] dhe_rsa_aes_256 = new String[1];
 			dhe_rsa_aes_256[0] = new String("TLS_DHE_RSA_WITH_AES_256_CBC_SHA");
@@ -102,7 +104,7 @@ public class server {
 
 			//require client authentication
 			serverSocket.setNeedClientAuth(true);
-				
+
 			System.out.println("Support protocols are:");
 			String[] protocols = serverSocket.getSupportedProtocols();
 			for (int i = 0; i < protocols.length; i++) {
@@ -125,33 +127,42 @@ public class server {
 			//			char m;
 			//			String fileName = null;
 			int choice;			
-			if((choice = r.read())!= -1){
-				byte b_choice = (byte)choice;
-				System.out.println("got inside th loop........");
-				System.out.println(b_choice);
-				if(b_choice == 'p'){
-					System.out.println("got inside th loop......put..");
-					file_name = get_fileName(r);
-					String local_FileName = "../../ServerFile/" + file_name;
-					create_File(local_FileName, r);
-				}
-				else if(b_choice == 'g'){
-					System.out.println("got inside th loop.....get");
-					file_name = get_fileName(r);
-					String local_FileName = "../../ServerFile/" + file_name;
+			while(1 != 2){
+				if((choice = r.read())!= -1){
+					byte b_choice = (byte)choice;
+					System.out.println("got inside th loop........");
+					System.out.println(b_choice);
+					if(b_choice == 'p'){
+						System.out.println("got inside th loop......put..");
+						file_name = get_fileName(r);
+						String local_FileName = "../../ServerFile/" + file_name;
+						create_File(local_FileName, r);
+					}
+					else if(b_choice == 'g'){
+						System.out.println("got inside th loop.....get");
+						file_name = get_fileName(r);
+						String local_FileName = "../../ServerFile/" + file_name;
 
-					handle_get(local_FileName);
+						handle_get(local_FileName);
+					}
+					else if(b_choice == 'd'){
+						// handle_d, then handle as per the g case
+						// extract out token and token signature that client sends
+						// as byte[] arrays
+						handle_del(r);
+						file_name = get_fileName(r);
+						String local_FileName = "../../ServerFile/" + file_name;
+						handle_get(local_FileName);
+					}
+					else if(b_choice == 'e'){
+						System.out.println("THis is exit.............");
+						r.close();
+						socket.close();
+						return;
+					}
 				}
-				else if(b_choice == 'd'){
-					// handle_d, then handle as per the g case
-					// extract out token and token signature that client sends
-					// as byte[] arrays
-					
-				}
-			}
-			System.out.println("Just connected to " + socket.getRemoteSocketAddress());
-			//			r.close();
-			//			socket.close();
+//				System.out.println("Just connected to " + socket.getRemoteSocketAddress());
+			}	
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (KeyManagementException e) {
@@ -167,6 +178,52 @@ public class server {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	//This method handles the delegation provided by the user.
+	private void handle_del(BufferedReader br) {
+		try {
+			//--------Reading token
+			ByteBuffer token_size = ByteBuffer.allocate(4);
+			// creates buffer
+			char[] cbuf = new char[4];
+			br.read(cbuf, 0, 4);
+
+			for (char c:cbuf)
+			{
+				token_size.put((byte) c);
+			}
+			token_size.rewind();
+			int int_Tokensize = token_size.getInt();
+
+			ByteBuffer token = ByteBuffer.allocate(int_Tokensize);
+			for(int i=0; i< int_Tokensize ; i++){
+				token.put((byte) br.read());
+			}
+
+			//-------------Reading Signature
+
+			ByteBuffer sign_size = ByteBuffer.allocate(4);
+			// creates buffer
+			char[] signbuf = new char[4];
+			br.read(signbuf, 0, 4);
+
+			for (char c:signbuf)
+			{
+				sign_size.put((byte) c);
+			}
+			sign_size.rewind();
+			int int_SignSize = sign_size.getInt();
+
+			ByteBuffer signature = ByteBuffer.allocate(int_SignSize);
+			for(int i=0; i< int_SignSize ; i++){
+				signature.put((byte) br.read());
+			}
+
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -253,15 +310,15 @@ public class server {
 
 			//check if the client is the owner or posssess a valid
 			//delagation token for the owner
-			
+
 			if(checkPermission(decryptedText) == false){
 				System.out.println("Invalid get request, you do not own this file");
 				return;
 			}
-			
+
 			decryptedText = decryptedText.substring(this.clientID.getName().length());
-			
-//			File file = new File(file_name);
+
+			//			File file = new File(file_name);
 			long fileSize = decryptedText.length();
 			ByteBuffer file_size = ByteBuffer.allocate(8);
 			file_size.putLong(fileSize);
@@ -401,7 +458,7 @@ public class server {
 				SecureRandom random = new SecureRandom();
 				cipher.init(Cipher.DECRYPT_MODE, serverkey, random);
 				decrypt_key = cipher.doFinal(cipherText);
-//				decrypt_key = new String(cipherText, "UTF-8");
+				//				decrypt_key = new String(cipherText, "UTF-8");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
