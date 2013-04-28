@@ -142,6 +142,12 @@ public class server {
 
 					handle_get(local_FileName);
 				}
+				else if(b_choice == 'd'){
+					// handle_d, then handle as per the g case
+					// extract out token and token signature that client sends
+					// as byte[] arrays
+					
+				}
 			}
 			System.out.println("Just connected to " + socket.getRemoteSocketAddress());
 			//			r.close();

@@ -199,6 +199,7 @@ public class client {
 			char[] char_TokenLength = new String(serialTokenLength, "UTF-8").toCharArray();
 			char[] char_TokenSign = new String(signature, "UTF-8").toCharArray();
 			char[] char_TokenSignLegth = new String(signatureLength, "UTF-8").toCharArray();
+			w.write('d');
 			w.write(char_Token, 0, serialToken.length);
 			w.write(char_TokenLength, 0, serialToken.length);
 			w.write(char_TokenSign, 0, serialToken.length);
