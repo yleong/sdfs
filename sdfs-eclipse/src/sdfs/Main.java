@@ -30,6 +30,12 @@ public class Main {
 				obj_client.PutFile(UID);
 			}
 			else if(input2.equals("get")){
+				Scanner writeDelegateInfo = new Scanner(System.in);
+				System.out.println("Do you want to send the delegation? (y/n): ");
+				String answer = writeDelegateInfo.next();
+				if(answer.equals("y") || answer.equals("Y") || answer.equals("Yes")){
+					
+				}
 				obj_client.GetFile(UID);
 			}
 			else if(input2.equals("del")){
