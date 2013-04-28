@@ -29,7 +29,7 @@ public class client {
 	private SSLSocket Socket;
 	private String fileName;
 	private BufferedWriter bufferedWriter = null;
-
+	
 	//This method is requests a file from the server
 	//based on the user provided filename
 	public void GetFile(String UID){
@@ -163,7 +163,55 @@ public class client {
 			e.printStackTrace();
 		}
 	}
+	
+	public void create_delegation_files(DelegationToken token){
+		byte[] serialToken = serializeToken(token);
+		byte[] signature = signDelegationToken(serialToken);
+		writeFile(serialToken, "default" + ".token");
+		writeFile(signature, "default"+ ".sig");
+		System.out.println("Written delegation token as default.token and default.sig");
+	}
+	
+	public void send_delegation_token(){
+		byte[] serialToken = readFile("default.token");
+		byte[] serialTokenLength = integerToByteArray(serialToken.length);
+		byte[] signature = readFile("default.sig");
+		byte[] signatureLength = integerToByteArray(signature.length);
+		
+		//send all 4 in that order to the server 
+	}
+	
+	public byte[] integerToByteArray(int input){
+		//given an integer, return the 4-byte representation of the integer
+		
+		return null;
+	}
+	
+	//given a token object, return a byte[] representation of the token
+	public byte[] serializeToken(DelegationToken token){
+		// get filename, recipientname, rights, numdays, propagate from the client
+		// store them inside a new DelegationToken(...)
+		byte[] output =null;
+		
+		return output;
+	}
+	
+	//given a token in byte[] format, sign it with the client's key
+	public byte[] signDelegationToken(byte[] token){
+		byte[] signedToken =null;
+		
+		return signedToken;
+	}
 
+	public void writeFile(byte[] file, String fileName){
+	
+	}
+	
+	public byte[] readFile(String fileName){
+		return null;
+	}
+	
+	
 	//This method starts a new session with the server.
 	public void Start_FS_session(){
 		int port = 3000;
