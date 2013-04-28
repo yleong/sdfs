@@ -5,10 +5,10 @@ public class DelegationToken implements java.io.Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = -8470093355687010538L;
-	private String fileName;
-	private String recipientName;
-	private String rights;
-	private int numdays; //number of seconds before expiry
+	public String fileName;
+	public String recipientName;
+	public String rights;
+	public int numdays; //number of seconds before expiry
 	private boolean propagate;
 
 	DelegationToken(){} //empty constructor

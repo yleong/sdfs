@@ -2,6 +2,8 @@ package sdfs;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -21,7 +23,9 @@ import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Signature;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -55,7 +59,8 @@ public class server {
 	private char ctPass[];
 	private String file_name = null;
 	private Principal clientID;
-
+	private DelegationToken mastertoken = null;
+	
 	//This is the method that tries to listen to the client 
 	//on the given port number.
 	public void listen(){
@@ -125,6 +130,7 @@ public class server {
 			//			char m;
 			//			String fileName = null;
 			int choice;			
+			
 			if((choice = r.read())!= -1){
 				byte b_choice = (byte)choice;
 				System.out.println("got inside th loop........");
@@ -143,6 +149,7 @@ public class server {
 					handle_get(local_FileName);
 				}
 				else if(b_choice == 'd'){
+					
 					// handle_d, then handle as per the g case
 					// extract out token and token signature that client sends
 					// as byte[] arrays
@@ -186,6 +193,52 @@ public class server {
 				+s.getUseClientMode());
 	} 
 
+	//given token and signature, verify using public key
+	//"cheat" by getting from the keystore directly
+	public boolean verify(byte[] token, byte[] signature){
+		
+		final String alias = "client";
+		KeyStore ks;
+		boolean answer = false;
+		try {
+			ks = KeyStore.getInstance("jks");
+			ks.load(new FileInputStream("../../CS-6238/keystore.jks"), ksPass);
+			PublicKey verkey;
+			verkey = ks.getCertificate(alias).getPublicKey();
+			
+			final Signature verifier = Signature.getInstance("SHA1withRSA");
+			// sign using the private key
+			SecureRandom random = new SecureRandom();
+			verifier.initVerify(verkey);
+			verifier.update(token);
+			answer = verifier.verify(signature);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return answer; 		
+	}
+	
+	//given byte[], get delegationtoken object
+	public DelegationToken convertToTokenObject(byte[] token){
+		// get filename, recipientname, rights, numdays, propagate from the client
+		// store them inside a new DelegationToken(...)
+		DelegationToken tok = null;
+		byte[] output =null;
+		ByteArrayInputStream bi = new ByteArrayInputStream(token);
+		try {
+			ObjectInputStream i = new ObjectInputStream(bi);
+			
+			tok = (DelegationToken) i.readObject();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return tok;		
+	}
+	
 	//This method creates a file with the server
 	//after the put request by the client
 	public void create_File(String file_name, BufferedReader br){
@@ -254,7 +307,8 @@ public class server {
 			//check if the client is the owner or posssess a valid
 			//delagation token for the owner
 			
-			if(checkPermission(decryptedText) == false){
+			String actual_filename = file_name.substring(file_name.lastIndexOf('/'));
+			if(checkPermission(decryptedText, "g", actual_filename) == false){
 				System.out.println("Invalid get request, you do not own this file");
 				return;
 			}
@@ -282,13 +336,22 @@ public class server {
 	}
 
 	//check for permissions to get this file
-	private boolean checkPermission(String decryptedText) {
+	private boolean checkPermission(String decryptedText, String operation, String filename) {
 		if(decryptedText.indexOf(this.clientID.getName()) == 0){
 			return true;
 		} 
-		if(false){
+		//check for delegations
+		if(mastertoken != null){
+			if(! this.clientID.getName().equalsIgnoreCase(mastertoken.recipientName)) return false;
+			if(-1 == mastertoken.rights.indexOf(operation.charAt(0))) return false;
+			if(! mastertoken.fileName.equalsIgnoreCase(filename)) return false;
+			//verify that this.clientID.getName() == mastertoken.recipientname
+			//verify that mastertoken.rights.indexof(operation) is not null
+			//verify that mastertoken.flename == filename
+			
+			// and if all of that were true, then we return true, or else we return false
 			return true;
-			//check for delegation
+			
 		}
 		return false;
 	}

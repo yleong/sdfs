@@ -253,23 +253,24 @@ public class client {
 			System.out.println(b64);
 			System.out.println("-----END PRIVATE KEY-----");
 
-			//hash first.
-			MessageDigest digest = null;
-			try {
-				digest = MessageDigest.getInstance("SHA-256");
-			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			digest.update(token);
-			byte[] hashValue = digest.digest();
+//			//hash first.
+//			MessageDigest digest = null;
+//			try {
+//				digest = MessageDigest.getInstance("SHA-256");
+//			} catch (NoSuchAlgorithmException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			digest.update(token);
+//			byte[] hashValue = digest.digest();
+//			
+//			//now, sign by decrypting.
+//			Provider[] p = Security.getProviders();
+//			for(int i = 0; i < p.length; i++){
+//				System.out.println(p[i].getName());
+//				
+//			}
 			
-			//now, sign by decrypting.
-			Provider[] p = Security.getProviders();
-			for(int i = 0; i < p.length; i++){
-				System.out.println(p[i].getName());
-				
-			}
 			try {
 				
 				// get an RSA cipher object and print the provider
